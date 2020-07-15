@@ -1,0 +1,15 @@
+Depto. de Engenharia de Sistemas Eletrônicos  
+PSI 3541 - Sistemas Embarcados Distribuídos 
+Mini Servidor WEB 
+
+Projeto Mini Servidor WEB 
+
+Características do projeto 
+   * Protocolo HTTP 1.0 com comando GET
+   * Objetos HTML 
+   * Objetos TXT 
+   * Objetos imagem JPEG e PNG
+
+
+
+
