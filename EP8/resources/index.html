@@ -4,16 +4,23 @@
 <head>
     <meta charset="utf-8" />
     <title>Trabalho Final - PSI3541</title>
-    <!-- <link rel="stylesheet" type="text/css" href="_css/estilo.css" /> -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Inter&effect=outline">
+    <style>
+      body {
+        font-family: 'Inter', serif;
+        background-color: rgb(224, 224, 224);
+        /* font-size: 20px; */
+      }
+    </style>
     <!-- <meta http-equiv="refresh" content="5"> -->
 </head>
 
 <body>
     <header id="cabecalho" style="font-size: large; top:40px;">
-        <h1>LUMIAR</h1>
+        <h1 class="font-effect-outline">LUMIAR</h1>
         <img src="img/Poli-minerva.png" alt="Minerva" height="150" style="position: relative; left: 250px; top: -70px;">
     </header>
-
     <div id="simulation" style="position: relative; top: -60px;">
         <h2>Estado</h2>
 
@@ -26,7 +33,7 @@
             </select>
         </div>
     
-        <img id="lampada" src="img/lamp_off.jpg" alt="lampada-off" height="150"
+        <img id="lampada" src="img/lamp_off_2.png" alt="lampada-off" height="150"
             style="position: relative; left: 300px; top: 10px;">
 
         <div id="int" style="position: relative; top: -80px;">
@@ -71,9 +78,9 @@
                 
                 var lampada = document.getElementById("lampada");
                 if (document.getElementById("intensidade").value > 0){
-                    lampada.src = "img/lamp_on.jpg";
+                    lampada.src = "img/lamp_on_2.png";
                 } else {
-                    lampada.src = "img/lamp_off.jpg";
+                    lampada.src = "img/lamp_off_2.png";
                 }
             }
 
