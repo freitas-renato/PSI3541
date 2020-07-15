@@ -52,3 +52,43 @@ struct in_addr {
 
 ## Cliente UDP
 
+### Resumo das chamadas UDP
+
+```c
+// Chamadas
+socket();
+connect();  // pré define o parceiro de comunicação para todo send()
+send(); sendto();  // sendto() informa o parceiro de comunicação a cada chamada
+recv(); recvfrom();
+close();
+```
+
+- `socket()`
+    - cria um novo socket. Aloca estruturas de dados no sistema operacional para suportar a nova sessão de comunicação
+    - `sd = socket(domain, type, protocol)`
+    - domain = protocolos (PF_LOCAL, PF_INET, PF_INET6, PF_X25)
+    - type = comunicação (SOCK_STREAM TCP, SOCK_DGRAM UDP, SOCK_RAW IP)
+    - protocol = usar 0 para PF_INET
+
+- `connect()`
+    - estabelece uma sessão de comunicação TCP, UDP ou IP
+    - deve ser usado só do lado do **cliente**
+    - *UDP* : informa o SO o socket do parceiro de comunicação. Não são enviados datagramas
+    - *TCP* : informa o socket do parceiro e estabelece conexão TCP (3 way handshake)
+    - `connect(sd, sockaddr, size)`
+
+- `send()`
+    - `send(sd, txbuffer, msgsize, flags)`
+    - transmissao de dados
+
+- `recv()`
+    - `recv(sd, rxbuffer, rxbuffersize, flags)`
+    - bloqueante: processo fica aguardando a chegada de msg
+    - excessão: quando o socket for criado como não bloqueante
+    - retorna tamanho do datagrama recebido
+
+- `close()`
+    - `close(sd)`
+    - fecha o socket, aguarda finalização de transmissões
+    - 
+ 
