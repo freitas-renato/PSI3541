@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Trabalho Final - PSI3541</title>
+    <!-- <link rel="stylesheet" type="text/css" href="_css/estilo.css" /> -->
+    <!-- <meta http-equiv="refresh" content="5"> -->
+</head>
+
+<body>
+    <header id="cabecalho" style="font-size: large; top:40px;">
+        <h1>LUMIAR</h1>
+        <img src="img/Poli-minerva.png" alt="Minerva" height="150" style="position: relative; left: 250px; top: -70px;">
+    </header>
+
+    <div id="simulation" style="position: relative; top: -60px;">
+        <h2>Estado</h2>
+
+        <div id="mode">
+            <label for="get-mode">Modo de Operação</label>
+            <select name="mode" id="mode-dropdown">
+                <option value="standy">Standby</option>
+                <option value="manual">Manual</option>
+                <option value="auto">Automático</option>
+            </select>
+        </div>
+    
+        <img id="lampada" src="img/lamp_off.jpg" alt="lampada-off" height="150"
+            style="position: relative; left: 300px; top: 10px;">
+
+        <div id="int" style="position: relative; top: -80px;">
+            <label for="intensidade">Intensidade do LED</label>
+            <input type="number" min="0" max="100" step="10" id="intensidade" value="0" name="Intensidade"
+                list="marks" required>
+            <label for="intensidade">%</label>
+        </div>
+
+        <!-- deixei assim só pra testar sla -->
+        <div>
+            <label for="luminosidade">Luminosidade:</label>
+            <label id="luminosidade"> </label>
+            <label for="luminosidade">%</label>
+            <br>
+        </div>
+    </div>
+
+
+    <footer style="font-size: small; text-align: center; width: 400px;">
+        <p>Trabalho Final da Disciplina PSI3541</p>
+        <p>Por Isabella Bologna e Renato Freitas</p>
+    </footer>
+
+    <script>
+        const Http = new XMLHttpRequest();
+        const base_url = document.documentURI;
+        
+        // GET Valor do Sensor de Luminosidade
+        setInterval(get_luminosidade, 2000);
+        function get_luminosidade() {
+            Http.open("GET", base_url+"luminosidade");
+            Http.send();
+    
+            Http.onreadystatechange=(e)=>{
+                // console.log(Http.responseText);
+                var lumi = Http.responseText;
+                document.getElementById("luminosidade").innerText = lumi;
+                if (op_mode.selectedIndex == 2) {
+                    document.getElementById("intensidade").value = String(100 - Number(lumi));
+                }
+                
+                var lampada = document.getElementById("lampada");
+                if (document.getElementById("intensidade").value > 0){
+                    lampada.src = "img/lamp_on.jpg";
+                } else {
+                    lampada.src = "img/lamp_off.jpg";
+                }
+            }
+
+        }
+
+        // GET com query com valor do dropdown (standby, auto ou manual)
+        var op_mode = document.getElementById("mode-dropdown");
+        op_mode.onchange = function(){
+            console.log(op_mode.selectedIndex);
+            Http.open("GET", base_url+"opmode?" + op_mode.selectedIndex);
+            Http.send();
+            Http.onreadystatechange=(e)=>{
+                console.log(Http.responseText);
+            }
+        };
+
+
+        var intensidade = document.getElementById("intensidade");
+        intensidade.onchange = function() {
+            console.log(intensidade.value);
+            if (op_mode.selectedIndex == 1) {
+                var lampada = document.getElementById("lampada");
+                if (document.getElementById("intensidade").value > 0){
+                    lampada.src = "img/lamp_on.jpg";
+                } else {
+                    lampada.src = "img/lamp_off.jpg";
+                }
+                
+                Http.open("GET", base_url+"intensity?" + intensidade.value);
+                Http.send();
+                Http.onreadystatechange=(e)=>{
+                    console.log(Http.responseText);
+                }
+            }
+        }
+
+    </script>
+</body>
+
+</html>

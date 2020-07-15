@@ -44,13 +44,19 @@ char basedir[100];
 static int server_sd;
 
 
-int parse_request(int sd, char* req, char* path) {
+int parse_request(int sd, char* req, char* path, char* query) {
     char request[10000];       // buffer temporario
     char header[500];
     char response[1000];
     // char path[500];
 
     recv(sd, request, sizeof(request), 0);
+    // printf ("\nFULL REQUEST: %s\n\n", request);
+
+    // char *full_header = strtok(request, "\n\n\n");
+    // printf ("FULL HEADER: %s\n", full_header);
+    // full_header = strtok(NULL, "\n\n");
+    // printf ("CONTENT: %s\n", full_header);
 
     char *ptr = strtok(request, "\n");
     strcpy(header, ptr);
@@ -60,15 +66,22 @@ int parse_request(int sd, char* req, char* path) {
     char* p = strtok(header, " ");
     p = strtok(NULL, " ");
 
-    printf("path: %s \n", p);
+    // printf("path: %s \n", p);
 
+    char* q = strtok(p, "?");
+    q = strtok(NULL, " ");
+    printf("query: %s\n", q);
+    
     strcpy(path, p);
     strcpy(req, header);
-    // printf("header2: %s\n", req);
+    printf("path: %s \n", path);
+
+    if (q != NULL) {
+        strcpy(query, q);
+    }
 
 
     return 0;
-
 }
 
 void* server_thread(void* arg) {
@@ -79,6 +92,7 @@ void* server_thread(void* arg) {
     char response[1000];
     char request[10];
     char path[100];
+    char query[100];
     char tmp[512];
 
     char _resp[100];
@@ -100,46 +114,77 @@ void* server_thread(void* arg) {
 
         if (client_sd != 0) {
             
-            parse_request(client_sd, request, path);
+            parse_request(client_sd, request, path, query);
 
             if (strcmp(request, "GET") == 0) {
-                // if (strcmp(path, "/") == 0) {
-                //     strcpy(tmp, basedir);
-                //     append(tmp, sizeof(tmp), "index.html");
-                //     printf("File path: %s\n", tmp);
-
-                //     if (!send_response(tmp, client_sd)) {
-                //         // transferfile(response, client_sd);
-                //         not_found(response);
-                //         send(client_sd, response, strlen(response), 0);
-                //     }
-
-                // } else {
-                //     strcpy(tmp, basedir);
-                //     append(tmp, sizeof(tmp), path+1);
-                //     printf("File path: %s\n", tmp);
-
-                //     if (access(tmp, F_OK) != -1) {
-                //         if (!send_response(tmp, client_sd)) {
-                //             not_found(response);
-                //             send(client_sd, response, strlen(response), 0);
-                //         }
-                //     } else {
-                //         not_found(response);
-                //         send(client_sd, response, strlen(response), 0);
-                //     }
-
-                // }
                 if (strcmp(path, "/") == 0) {
+                    strcpy(tmp, basedir);
+                    append(tmp, sizeof(tmp), "index.html");
+                    printf("File path: %s\n", tmp);
+
+                    if (!send_response(tmp, client_sd)) {
+                        // transferfile(response, client_sd);
+                        not_found(response);
+                        send(client_sd, response, strlen(response), 0);
+                    }
+
+                    set_op_mode(STANDBY);
+
+                } else if (strcmp(path, "/luminosidade") == 0) {
                     ok(_resp, "text/html");
                     write(client_sd, _resp, strlen(_resp));
                     fsync(client_sd);
                     bzero(_resp, sizeof(_resp));
 
-                    sprintf(_resp, "<P> Valor Sensor: %d </P>\r\n", get_valor_sensor());
+                    sprintf(_resp, "%d", get_ambient_luminosity());
                     write(client_sd, _resp, strlen(_resp));
                     fsync(client_sd);
                     bzero(_resp, sizeof(_resp));
+
+
+                } else if (strcmp(path, "/opmode") == 0) {
+                    set_op_mode(atoi(query));
+                    printf("Opmode set: %d\n", get_op_mode());
+
+                    ok(_resp, "text/html");
+                    write(client_sd, _resp, strlen(_resp));
+                    fsync(client_sd);
+                    bzero(_resp, sizeof(_resp));
+                    sprintf(_resp, "OP mode set to: %d \r\n", get_op_mode());
+                    write(client_sd, _resp, strlen(_resp));
+                    fsync(client_sd);
+                    bzero(_resp, sizeof(_resp));
+
+                } else if (strcmp(path, "/intensity") == 0) {
+                    set_led_intensity(atoi(query));
+
+                    printf("Intensity set: %d\n", get_led_intensity());
+
+                    ok(_resp, "text/html");
+                    write(client_sd, _resp, strlen(_resp));
+                    fsync(client_sd);
+                    bzero(_resp, sizeof(_resp));
+                    sprintf(_resp, "Intensity set to: %d \r\n", get_led_intensity());
+                    write(client_sd, _resp, strlen(_resp));
+                    fsync(client_sd);
+                    bzero(_resp, sizeof(_resp));
+                }
+                
+                else {
+                    strcpy(tmp, basedir);
+                    append(tmp, sizeof(tmp), path+1);
+                    printf("File path: %s\n", tmp);
+
+                    if (access(tmp, F_OK) != -1) {
+                        if (!send_response(tmp, client_sd)) {
+                            not_found(response);
+                            send(client_sd, response, strlen(response), 0);
+                        }
+                    } else {
+                        not_found(response);
+                        send(client_sd, response, strlen(response), 0);
+                    }
+
                 }
             } else {
                 bad_request(response);
@@ -155,7 +200,7 @@ void* server_thread(void* arg) {
             tmp[0] = '\0';
 
             close(client_sd);
-            printf("Response sent, closing socked descriptor\n");
+            printf("Response sent, closing socked descriptor\n\n");
             // client_sd = 0;
         }
 
@@ -221,22 +266,12 @@ pthread_t init_server(void) {
 
     printf("Diretorio: %s\n", msg);
 
-
-    // server_port = port;
-
     if (server_port > 65535) {
         printf("Valor de porta invalido. \n");
         exit(-1);
     } else if (server_port > 0) {
         server_socket_address.sin_port = htons((in_port_t) server_port);
     }
-    // } else {
-    //     if ((serventryp = getservbyname(buffer, "tcp")) != NULL) {
-    //         server_socket_address.sin_port = serventryp->s_port;
-    //     } else {
-    //         printf("Nome do servico (ou porta) invalido. \n");
-    //     }
-    // }
 
     printf("IP do servidor: %s\n", inet_ntop(AF_INET, &server_socket_address.sin_addr, buffer, sizeof(buffer)));
     printf("Porta do servidor: %hu\n", ntohs(server_socket_address.sin_port));
@@ -262,31 +297,10 @@ pthread_t init_server(void) {
 
     printf("Servidor: esperando conexão... \n");
 
-    // pthread_create(&client_accept, NULL, accept_connections, (void*) &server_sd);
-    
-    // int i;
-    // for (i = 0; i < MAXCLIENTS; i++) {
-    //     pthread_create(&s_thread[i], NULL, server_thread, ((void*) &i));
-    // }
-
-    // pthread_create(&s_thread, NULL, server_thread, (void*) &client_sd);
     pthread_create(&s_thread, NULL, server_thread, NULL);
     pthread_join(s_thread, NULL);
 
-    // for (;;) {
-    //     // if ( (client_sd = accept(server_sd, (struct sockaddr*) &client_socket_address, &addr_len)) < 0) {
-    //     if ( (client_sd = accept(server_sd, NULL, NULL)) < 0) {
-    //         perror("accept failed \n");
-    //         exit(1);
-    //     } else { 
-    //         // printf("client accepted\n");
 
-    //         InserirFila(&F, client_sd);
-    //     }
-    //     sleep(1);
-    // }
-
-    // close(server_sd);
     return s_thread;
 
 }

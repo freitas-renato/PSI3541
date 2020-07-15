@@ -22,4 +22,6 @@ void set_op_mode(op_modes_t mode);
 int get_led_intensity(void);
 void set_led_intensity(int intensity);
 
+int get_ambient_luminosity(void);
+
 #endif  // __LED_CONTROL_H__

@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <string.h>
+
 #include "sensor.h"
 
 #define  TAMVETOR 30 
@@ -19,11 +22,25 @@ pthread_t threademulador;
 void emuladorsensor(void) {
     int i = 0;
 
+    char sensor[10];
+    int fd;
+
     while(1) {
-       nivel_sensor = valores[i];
-       i = (i + 1) % TAMVETOR;
-       printf("NIVEL SENSOR: %d\n", nivel_sensor);
-       sleep(PERIODO);
+        nivel_sensor = valores[i];
+        i = (i + 1) % TAMVETOR;
+        // printf("NIVEL SENSOR: %d\n", nivel_sensor);
+        
+        // sprintf(sensor, "%d", nivel_sensor);
+        // if ( (fd = open("/home/renato/psi3541/EP8/resources/myFile.txt", O_RDWR | O_TRUNC)) < 0) {
+        //     printf("failed to open file\n");
+        // } else {
+        //     write(fd, sensor, strlen(sensor));
+        //     fsync(fd);
+        //     close(fd);
+
+        // }
+        
+        sleep(PERIODO);
     }
 }
 
